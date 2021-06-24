@@ -1,0 +1,28 @@
+#create conda environment
+conda create -n survirus python=2.7 samtools numpy pyfaidx pysam bwa
+#install sdust
+git clone https://github.com/lh3/sdust
+
+#concatenate reads
+cat 21030_S2_L001_R1_001.fastq.gz 21030_S2_L002_R1_001.fastq.gz > 21030_R1.fastq.gz
+cat 21030_S2_L001_R2_001.fastq.gz 21030_S2_L002_R2_001.fastq.gz > 21030_R2.fastq.gz
+
+#unzip
+gunzip 21030_R1.fastq
+gunzip 21030_R2.fastq
+
+#generate reference genomes
+mv pig11.1.fa > pig.fa
+cat PERVA.fasta PERVB.fasta PERVC.fasta >virus.fa
+cat pig11.1.fa virus.fa >pig+perv.fa
+
+#index reference genomes
+bwa index pig.fa
+bwa index pig+perv.fa
+bwa index virus.fa
+samtools faidx pig.fa
+samtools faidx pig+perv.fa
+samtools faidx perv.fa
+
+#run survirus
+python surveyor.py --fq --threads 16 --wgs /data/wgs/21030_R1.fastq,/data/wgs/21030_R2.fastq /data/working /data/reference/pig.fa /data/reference/virus.fa /data/reference/pig+perv.fa
