@@ -1,0 +1,36 @@
+#load docker
+docker run -v /data/:/gatk/my_data -it broadinstitute/gatk:4.1.3.0
+
+#index genome file
+bwa index /data/reference/pig.11.1.fa
+
+#get readgroups
+less 21030_S2_L001_R1_001.fastq.gz|head
+
+#map reads to genome
+bwa mem -R "@RG\tID:VH00523:10:AAAFJLWHV:1\tSM:21030\tPL:ILLUMINA\tPI:330" \
+  /data/reference/pig11.1.fa \
+  21030_S2_L001_R1_001.fastq.gz \
+  21030_S2_L001_R2_001.fastq.gz \
+  -t 16 | samtools view -S -b > 21030_L1.bam
+bwa mem -R "@RG\tID:VH00523:10:AAAFJLWHV:2\tSM:21030\tPL:ILLUMINA\tPI:330" \
+  /data/reference/pig11.1.fa \
+  21030_S2_L002_R1_001.fastq.gz \
+  21030_S2_L002_R2_001.fastq.gz \
+  -t 16 | samtools view -S -b > 21030_L2.bam
+
+#merge bam
+samtools merge 21030_merged.bam 21030_L1.bam 21030_L2.bam
+
+#sort bam
+samtools sort 21030_merged.bam -o 21030_sorted.bam -@ 16
+
+#remove duplicates
+gatk MarkDuplicatesSpark \
+  -I 21030_sorted.bam \
+  -O 21030_sorted_dup.bam \
+  --remove-sequencing-duplicates \
+  -OBI
+
+#svABA
+svaba run -t 21030_sorted_dup.bam -p 8 -G /data/reference/pig11.1.fa
