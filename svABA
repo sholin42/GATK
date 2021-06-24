@@ -33,4 +33,8 @@ gatk MarkDuplicatesSpark \
   -OBI
 
 #svABA
-svaba run -t 21030_sorted_dup.bam -p 8 -G /data/reference/pig11.1.fa
+svaba run -t 21030_sorted_dup.bam -p 8 -a 21030 -G /data/reference/pig11.1.fa
+
+#vep on chromosome 1 (repeat for the rest of the chromosomes then concat the files)
+gzip 21030.vcf
+tabix -h /data/wgs/21030.vcf.gz 1|./vep --species pig --symbol --fork 4 --refseq --sift b --cache --format vcf --no_stats -o chr1.variant.txt
