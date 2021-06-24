@@ -41,3 +41,6 @@ gatk --java-options "-Xmx4g" HaplotypeCaller \
   -I 21030_sorted_dup.bam \
   -O 21030_g.vcf.gz \
   -ERC GVCF
+
+#vep on chromosome 1 (repeat with all chromosome) need to make a script to automate
+tabix -h /data/wgs/21030_g.vcf.gz 1|./vep --species pig --symbol --fork 4 --refseq --sift b --cache --format vcf --no_stats -o /data/wgs/yuc25F/chr1.variant.txt
